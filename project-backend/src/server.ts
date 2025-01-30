@@ -1,18 +1,15 @@
 import express, { Request, Response, NextFunction } from "express";
-const dotenv = require("dotenv");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-import DBconnect from "./config/dt"
+import dotenv from "dotenv";
+import cors from "cors";
+import DBconnect from "./config/dt"; // Ensure the path is correct
 import studentRoutes from "./routes/studentRoutes";
-// import attendanceRoutes from"./routes/attendanceRoutes";
-const userRoutes = require("./routes/userRoutes");
+import userRoutes from "./routes/userRoutes";
 
 dotenv.config();
 const app = express();
-const myMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  next();
-};
-app.use(myMiddleware);
+const PORT = process.env.PORT || 5005;
+
+// Middleware
 app.use(
   cors({
     origin: "*",
@@ -23,16 +20,21 @@ app.use(
 );
 app.use(express.json());
 
-DBconnect();
-app.use(bodyParser.json());
-app.use(cors());
-app.use(bodyParser.json());
+// Database connection
+DBconnect().catch((err: Error) => {
+  console.error("Database connection failed:", err);
+  process.exit(1);
+});
 
-// app.use("/api/country", contryRoutes);
-
+// Routes
 app.use("/auth/user", userRoutes);
 app.use("/api/students", studentRoutes);
-// app.use('/api/attendance', attendanceRoutes);
 
-const PORT = process.env.PORT || 5005;
+// Error handling middleware
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Something went wrong!" });
+});
+
+// Start the server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
