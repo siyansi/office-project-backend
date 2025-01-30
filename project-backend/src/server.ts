@@ -4,7 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const DBconnect = require("../src/config/dt");
 import studentRoutes from "./routes/studentRoutes";
-import attendanceRoutes from"./routes/attendanceRoutes";
+// import attendanceRoutes from"./routes/attendanceRoutes";
 const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
@@ -32,7 +32,7 @@ app.use(bodyParser.json());
 
 app.use("/auth/user", userRoutes);
 app.use("/api/students", studentRoutes);
-app.use('/api/attendance', attendanceRoutes);
+// app.use('/api/attendance', attendanceRoutes);
 
 const PORT = process.env.PORT || 5005;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
