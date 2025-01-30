@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 const dotenv = require("dotenv");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const DBconnect = require("../src/config/dt");
+import DBconnect from "./config/dt"
 import studentRoutes from "./routes/studentRoutes";
 // import attendanceRoutes from"./routes/attendanceRoutes";
 const userRoutes = require("./routes/userRoutes");
