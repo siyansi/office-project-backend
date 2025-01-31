@@ -1,43 +1,43 @@
 import express, { Request, Response } from "express";
 import Assignment from "../models/assignmentModal";
 import multer from "multer";
-import path from "path";
+
 const router = express.Router();
 
+// Set up memory storage to store files in memory instead of saving to disk
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, "uploads/"); // specify the folder where files will be stored
-    },
-    filename: (req, file, cb) => {
-      cb(null, Date.now() + path.extname(file.originalname)); // add timestamp to avoid name conflicts
-    },
-  });
-  
-  const upload = multer({ storage: storage });
-
-// ➤ Create a new assignment
+// ➤ Create a new assignment (with Base64 file conversion)
 router.post("/add", upload.single("attachment"), async (req, res) => {
-    try {
-      const { name, deadline, topic } = req.body;
-      const attachment = req.file ? req.file.path : null; // Store the file path if uploaded
-      const newAssignment = new Assignment({ name, deadline, topic, attachment });
-      await newAssignment.save();
-      res.status(201).json(newAssignment);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create assignment" });
+  try {
+    const { name, deadline, topic,assignee } = req.body;
+
+    let attachment = null;
+    if (req.file) {
+      attachment = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
     }
-  });
+
+    const newAssignment = new Assignment({ name, deadline, topic, assignee,attachment});
+    await newAssignment.save();
+
+    res.status(201).json(newAssignment);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create assignment" });
+  }
+});
 
 // ➤ Get all assignments
 router.get("/see", async (req, res) => {
   try {
     const assignments = await Assignment.find();
+    console.log("dddddd",assignments);
     res.status(200).json(assignments);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch assignments" });
   }
 });
+
 
 // ➤ Get a single assignment by ID
 router.get("/:id", async (req: Request, res: Response):Promise<void> =>{
