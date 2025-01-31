@@ -5,6 +5,7 @@ import DBconnect from "./config/dt"; // Ensure the path is correct
 import studentRoutes from "./routes/studentRoutes";
 import userRoutes from "./routes/userRoutes";
 import assignmentRoutes from "./routes/assignmentRoutes";
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -37,5 +38,10 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-// Start the server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start the server (only for local development)
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+// Export the app for Vercel
+export default app;
