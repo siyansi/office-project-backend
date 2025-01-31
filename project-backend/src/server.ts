@@ -4,7 +4,7 @@ import cors from "cors";
 import DBconnect from "./config/dt"; // Ensure the path is correct
 import studentRoutes from "./routes/studentRoutes";
 import userRoutes from "./routes/userRoutes";
-
+import assignmentRoutes from "./routes/assignmentRoutes";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -29,6 +29,7 @@ DBconnect().catch((err: Error) => {
 // Routes
 app.use("/auth/user", userRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/assignments", assignmentRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
