@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import Student from "../models/studentdModals";
-import authenticateToken from "../controller/authenticateToken";
-import roleMiddleware from "../Middleware/roleMiddleware";
+
 
 const router = express.Router();
 
@@ -121,5 +120,8 @@ router.post("/attendance/mark", async (req: Request, res: Response):Promise<void
     }
   });
   
+
+
+
 
 export default router;

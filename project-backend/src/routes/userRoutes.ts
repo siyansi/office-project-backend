@@ -3,8 +3,7 @@ import bcrypt from "bcryptjs";
 const router = express.Router();
 import jwt from "jsonwebtoken";
 import authenticateToken from "../controller/authenticateToken";
-import authMiddleware from "../Middleware/authMiddleware";
-import roleMiddleware from "../Middleware/roleMiddleware";
+
 import User from "../models/userModels";
 
 const dotenv = require("dotenv");

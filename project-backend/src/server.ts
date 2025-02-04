@@ -5,6 +5,7 @@ import DBconnect from "./config/dt"; // Ensure the path is correct
 import studentRoutes from "./routes/studentRoutes";
 import userRoutes from "./routes/userRoutes";
 import assignmentRoutes from "./routes/assignmentRoutes";
+import classRecordRoutes from "./routes/classRecordRoutes";
 
 dotenv.config();
 const app = express();
@@ -31,6 +32,7 @@ DBconnect().catch((err: Error) => {
 app.use("/auth/user", userRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/assignments", assignmentRoutes);
+app.use("/api/classrecords", classRecordRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
