@@ -1,32 +1,28 @@
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-import { Request } from "express";
-import { JwtPayload } from "jsonwebtoken";
-
-interface AuthenticatedRequest extends Request {
-  user?: JwtPayload | string;
+export interface AuthRequest extends Request {
+  user?: { id: string; role: string };
 }
 
-const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-  const token = req.headers.authorization?.split(" ")[1];
+// ✅ Middleware to authenticate user token
+const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+  const token = req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
-    res.status(401).json({ message: "No token provided, authorization denied" });
-    return;
+    return res.status(401).json({ error: "Access Denied. No token provided." });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    req.user = decoded;
+    const verified = jwt.verify(token, process.env.JWT_SECRET || "your_secret_key") as { id: string; role: string };
+    req.user = verified;
     next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
-    return;
+    res.status(403).json({ error: "Invalid token" });
   }
 };
 
-export default authMiddleware;
+export default authenticateToken;

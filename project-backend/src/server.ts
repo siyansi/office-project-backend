@@ -6,6 +6,7 @@ import studentRoutes from "./routes/studentRoutes";
 import userRoutes from "./routes/userRoutes";
 import assignmentRoutes from "./routes/assignmentRoutes";
 import classRecordRoutes from "./routes/classRecordRoutes";
+import scoreCardRoutes from "./routes/scoreCardModals";
 
 dotenv.config();
 const app = express();
@@ -33,6 +34,7 @@ app.use("/auth/user", userRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/classrecords", classRecordRoutes);
+app.use("/api/scorecards", scoreCardRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

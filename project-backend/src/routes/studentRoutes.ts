@@ -12,7 +12,7 @@ router.post("/add", async (req: Request, res: Response) => {
     const student = new Student(req.body);
     console.log("ddddd",student);
     await student.save();
-    res.status(201).json({ message: "Student added successfully", student });
+    res.status(200).json({ message: "Student added successfully", student });
   } catch (error) {
     res.status(500).json({ error: "Failed to add student" });
   }
@@ -35,11 +35,28 @@ router.get("/:id",  async (req: Request, res: Response): Promise<void> => {
     if (!student){
         res.status(404).json({ error: "Student not found" });return;
     }  
-    res.json(student);
+    res.status(200).json(student);
   } catch (error) {
     res.status(500).json({ error: "Error fetching student" });
   }
 });
+
+// router.get('/student/:id', async (req: Request, res: Response): Promise<void> =>  {
+//   try {
+//     const studentId = req.params.id;
+//     const student = await Student.findById(studentId);
+
+//     if (!student) {
+//        res.status(404).json({ message: 'Student not found' });
+//        return;
+//     }
+
+//     res.json(student); // Return student details
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Error fetching student details' });
+//   }
+// });
 
 // 📌 Update Student (Only Admins)
 router.put("/:id", async (req: Request, res: Response): Promise<void> => {
@@ -61,7 +78,7 @@ router.delete("/:id",   async (req: Request, res: Response): Promise<void> => {
     if (!deletedStudent) {
         res.status(404).json({ error: "Student not found" });return;
     }  
-    res.json({ message: "Student deleted successfully" });
+    res.status(200).json({ message: "Student deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete student" });
   }
@@ -101,26 +118,68 @@ router.post("/attendance/mark", async (req: Request, res: Response):Promise<void
     }
   });
   
-  // 📌 Get Attendance by Date
-  router.get("/attendance", async (req: Request, res: Response):Promise<void> => {
-    const { date } = req.query;
-  
-    if (!date) {
-       res.status(400).json({ message: "Date is required" });return;
-    }
-  
+  router.get("/attendance", async (req: Request, res: Response): Promise<void> => {
     try {
-      // ✅ Get all students with attendance for a specific date
+      const { date } = req.query;
+      
+      if (!date) {
+        console.log("❌ Date is missing in request!");
+        res.status(400).json({ message: "Date is required" });
+        return;
+      }
+  
+      console.log("✅ Date received:", date);
+  
       const students = await Student.find({ "attendance.date": date });
   
+      if (students.length === 0) {
+        console.log("❌ No students found for this date:", date);
+        res.status(404).json({ message: "No attendance records found" });
+        return;
+      }
+  
+      console.log("✅ Students found:", students);
       res.status(200).json(students);
+  
     } catch (error) {
-      console.error("Error fetching attendance:", error);
-      res.status(500).json({ message: "Server error" });
+      console.error("❌ Error fetching attendance:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ message: "Server error", error: errorMessage });
     }
   });
   
 
+  router.get("/attendance/:studentId", async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { studentId } = req.params;
+  
+      if (!studentId) {
+        console.log("❌ Student ID is missing in request!");
+        res.status(400).json({ message: "Student ID is required" });
+        return;
+      }
+  
+      console.log("✅ Fetching attendance for Student ID:", studentId);
+  
+      // ✅ Find student by ID
+      const student = await Student.findById(studentId).select("attendance fullName registerNumber");
+  
+      if (!student) {
+        console.log("❌ No student found with ID:", studentId);
+        res.status(404).json({ message: "Student not found" });
+        return;
+      }
+  
+      console.log("✅ Attendance found for:", student.fullName);
+      res.status(200).json(student.attendance);
+  
+    } catch (error) {
+      console.error("❌ Error fetching attendance:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ message: "Server error", error: errorMessage });
+    }
+  });
+  
 
 
 

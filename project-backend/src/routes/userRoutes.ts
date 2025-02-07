@@ -1,9 +1,9 @@
-import express, { Router, Request, Response, NextFunction } from "express";
+import express, { Request, Response, } from "express";
 import bcrypt from "bcryptjs";
 const router = express.Router();
 import jwt from "jsonwebtoken";
-import authenticateToken from "../controller/authenticateToken";
-
+// import authenticateToken from "../controller/authenticateToken";
+import Student from "../models/studentdModals"; // Import the updated student model
 import User from "../models/userModels";
 
 const dotenv = require("dotenv");
@@ -28,63 +28,71 @@ router.post(
     }
   }
 );
-
-const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+// ✅ LOGIN ROUTE
+router.post("/login", async (req: Request, res: Response):Promise<void> => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    console.log("hghhhhhhhh",user);
+
+    let user = await User.findOne({ email }); // ✅ Check Admins & Managers first
+    let role = "Admin";
+
     if (!user) {
-      res.status(400).json({ error: "User not found" });
-      return;
+      user = await Student.findOne({ email }); // ✅ Check Students collection
+      role = "Student";
     }
 
+    if (!user) {
+       res.status(400).json({ error: "User not found" });
+        return;
+    }
+
+    // ✅ Compare Password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      res.status(400).json({ error: "Invalid password" });
-      return;
+       res.status(400).json({ error: "Invalid password" });
+        return;
     }
 
+    // ✅ Generate Token
     const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET || "simonpeter@246" as string,
+      { id: user._id, role },
+      process.env.JWT_SECRET || "simonpeter@246",
       { expiresIn: "1d" }
     );
 
-    res.json({ token });
+    // ✅ Return token & role
+    res.json({ token, role });
+
   } catch (error) {
     console.error("Login error:", error);
-    next(error);
+    res.status(500).json({ error: "Internal server error" });
   }
-};
+});
 
-router.post("/login", login);
 
-router.get(
-  "/userDetails",
-  authenticateToken,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const user = await User.findById(req.user.id);
-      if (!user) {
-        res.status(404);
-      }
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-      const id = user._id;
-      const findUser = await User.findOne({ _id: id });
-      res.json(findUser);
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-      res.sendStatus(500);
-    }
-  }
-);
+// router.post("/login", login);
+
+// router.get(
+//   "/userDetails",
+//   authenticateToken,
+//   async (req: Request, res: Response): Promise<void> => {
+//     try {
+//       const user = await User.findById(req.user.id);
+//       if (!user) {
+//         res.status(404);
+//       }
+//       if (!user) {
+//         res.status(404).json({ error: "User not found" });
+//         return;
+//       }
+//       const id = user._id;
+//       const findUser = await User.findOne({ _id: id });
+//       res.json(findUser);
+//     } catch (error) {
+//       console.error("Error fetching user details:", error);
+//       res.sendStatus(500);
+//     }
+//   }
+// );
 
 export default router

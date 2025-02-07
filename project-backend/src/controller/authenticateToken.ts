@@ -1,42 +1,33 @@
-import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any; // Adjust this according to your user type
-    }
-  }
+interface AuthRequest extends Request {
+  user?: { id: string; role: string };
 }
 
-const authenticateToken = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const token = req.headers.authorization?.split(" ")[1];
+// Middleware to verify JWT token and check user role
+const authenticateToken = (roles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    const token = req.header("Authorization")?.split(" ")[1];
 
-  if (!token) {
-    res.status(401);
-    return;
-  }
-
-  const jwtSecret = process.env.JWT_SECRET;
-
-  if (!jwtSecret) {
-    console.error("JWT_SECRET is not defined in the environment variables");
-    res.status(500);
-    return;
-  }
-
-  jwt.verify(token, jwtSecret, (err, user) => {
-    if (err) {
-      return res.sendStatus(403);
+    if (!token) {
+      return res.status(401).json({ error: "Access denied. No token provided." });
     }
 
-    req.user = user;
-    next();
-  });
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "simonpeter@246") as { id: string; role: string };
+      req.user = decoded;
+
+      // Check if user role is allowed
+      if (!roles.includes(req.user.role)) {
+        return res.status(403).json({ error: "Access denied. Unauthorized role." });
+      }
+
+      next();
+    } catch (error) {
+      res.status(400).json({ error: "Invalid or expired token" });
+    }
+  };
 };
 
 export default authenticateToken;

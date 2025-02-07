@@ -1,12 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "../Middleware/authMiddleware";
 
-const roleMiddleware = (allowedRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ error: "Access Denied: Insufficient Permissions" });
-    }
-    next();
-  };
+// ✅ Middleware to check if user is Admin
+export const checkAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.role !== "Admin") {
+    return res.status(403).json({ error: "Access denied. Admins only." });
+  }
+  next();
 };
-
-export default roleMiddleware;

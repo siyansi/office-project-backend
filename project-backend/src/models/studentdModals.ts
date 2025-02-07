@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import bcrypt from "bcryptjs";
 
 // Define the attendance schema
 const attendanceSchema = new Schema({
@@ -19,9 +20,12 @@ interface IStudent extends Document {
   email: string;
   mobileNumber: string;
   duration: string;
-  attendance: { date: string; status: "Present" | "Absent" }[]; // ✅ New Field
+  password: string;
+  role: "Student" | "Trainer" | "Admin"; // ✅ Role Field Added
+  attendance: { date: string; status: "Present" | "Absent" }[];
 }
 
+// Define student schema
 const studentSchema = new Schema<IStudent>({
   fullName: { type: String, required: true },
   registerNumber: { type: String, required: true, unique: true },
@@ -35,7 +39,17 @@ const studentSchema = new Schema<IStudent>({
   email: { type: String, required: true, unique: true },
   mobileNumber: { type: String, required: true, unique: true },
   duration: { type: String, required: true },
-  attendance: [attendanceSchema], // ✅ Adding attendance records inside Student
+  password: { type: String, required: true },
+  role: { type: String, enum: ["Student", "Trainer", "Admin"], default: "Student" }, // ✅ Default role is Student
+  attendance: [attendanceSchema],
+});
+
+// Hash password before saving
+studentSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 const Student = mongoose.model<IStudent>("Student", studentSchema);
